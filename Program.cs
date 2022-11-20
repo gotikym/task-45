@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 internal class Program
@@ -16,19 +16,19 @@ class User
     private List<City> _direction = new List<City>();
     private Passengers _passengers = new Passengers();
     private Train _train = new Train();
-    private Railwaycarriage _railwaycarriage = new Railwaycarriage();
-    private RailwaycarriageSmall _railwaycarriageSmall = new RailwaycarriageSmall();
-    private int TicketCount = 0;
+    private RailwayCarriage _railwayCarriage = new RailwayCarriage();
+    private RailwayCarriageSmall _railwayCarriageSmall = new RailwayCarriageSmall();
+    private int _ticketCount = 0;
 
-    private void Table()
+    private void ShowTable()
     {
         bool isAsseble = _train.IsAssemble();
         bool isDirection = IsDirection();
         bool isDeparted = _train.IsDeparted;
-        int railwaycarriageCount = _train.RailwaycarriageCount;
-        int railwaycarriageSpaciousness = _railwaycarriage.NumberSeats;
-        int railwaycarriageSmallCount = _train.RailwaycarriageSmallCount;
-        int railwaycarriageSmallSpaciousness = _railwaycarriageSmall.NumberSeats;
+        int railwayCarriageCount = _train.RailwayCarriageCount;
+        int railwayCarriageSpaciousness = _railwayCarriage.NumberSeats;
+        int railwayCarriageSmallCount = _train.RailwayCarriageSmallCount;
+        int railwayCarriageSmallSpaciousness = _railwayCarriageSmall.NumberSeats;
         Console.Clear();
         Console.Write("Направление: ");
 
@@ -41,14 +41,14 @@ class User
             Console.Write("Здесь должно быть направление");
         }
 
-        Console.Write("\nКоличество купленых билетов: " + TicketCount);
+        Console.Write("\nКоличество купленых билетов: " + _ticketCount);
         Console.Write("\nФормирование поезда: ");
 
         if (isAsseble == true)
         {
             Console.Write("Поезд сформирован и он имеет ");
-            railwaycarriageInfo(railwaycarriageCount, railwaycarriageSpaciousness);
-            railwaycarriageInfo(railwaycarriageSmallCount, railwaycarriageSmallSpaciousness);
+            ShowRailwayCarriage(railwayCarriageCount, railwayCarriageSpaciousness);
+            ShowRailwayCarriage(railwayCarriageSmallCount, railwayCarriageSmallSpaciousness);
         }
         else
         {
@@ -79,7 +79,7 @@ class User
 
         while (isExit == false)
         {
-            Table();
+            ShowTable();
 
             Console.SetCursorPosition(15, 15);
             Console.WriteLine("\nЗадать направление: " + Direction + "\nПродать билеты: " + TicketsSell +
@@ -155,26 +155,26 @@ class User
         }
         else
         {
-            TicketCount = _passengers.Amount;
+            _ticketCount = _passengers.Amount;
         }
     }
 
     private void FormTrain()
     {
-        if (TicketCount == 0)
+        if (_ticketCount == 0)
         {
             Console.WriteLine("Сперва продайте билеты, чтобы знать кол-во нужных мест");
             Console.ReadKey();
         }
         else
         {
-            _train.Assemble(TicketCount);
+            _train.Assemble(_ticketCount);
         }
     }
 
-    private void railwaycarriageInfo(int railwaycarriageCount, int railwaycarriageSpaciousness)
+    private void ShowRailwayCarriage(int railwayCarriageCount, int railwayCarriageSpaciousness)
     {
-        Console.Write("\n" + railwaycarriageCount + " вагонов, вместительностью " + railwaycarriageSpaciousness + " человек");
+        Console.Write("\n" + railwayCarriageCount + " вагонов, вместительностью " + railwayCarriageSpaciousness + " человек");
     }
 
     private void ResetDirection()
@@ -184,8 +184,8 @@ class User
         if (isDeparted == true)
         {
             _direction.Clear();
-            _train.ResetTrain();
-            TicketCount = 0;
+            _train.Reset();
+            _ticketCount = 0;
         }
         else
         {
@@ -197,47 +197,47 @@ class User
 
 class Train
 {
-    private List<Railwaycarriage> _train = new List<Railwaycarriage>();
-    private Railwaycarriage _railwaycarriage = new Railwaycarriage();
-    private RailwaycarriageSmall _railwaycarriageSmall = new RailwaycarriageSmall();
+    private List<RailwayCarriage> _train = new List<RailwayCarriage>();
+    private RailwayCarriage _railwayCarriage = new RailwayCarriage();
+    private RailwayCarriageSmall _railwayCarriageSmall = new RailwayCarriageSmall();
     public bool IsDeparted { get; private set; }
-    public int RailwaycarriageCount { get; private set; }
-    public int RailwaycarriageSmallCount { get; private set; }
+    public int RailwayCarriageCount { get; private set; }
+    public int RailwayCarriageSmallCount { get; private set; }
 
     public Train()
     {
-        _train = new List<Railwaycarriage>();
+        _train = new List<RailwayCarriage>();
         IsDeparted = false;
-        RailwaycarriageCount = 0;
-        RailwaycarriageSmallCount = 0;
+        RailwayCarriageCount = 0;
+        RailwayCarriageSmallCount = 0;
     }
 
     public void Assemble(int numberSeats)
     {
-        int railwaycarriageSpaciousness = _railwaycarriage.NumberSeats;
-        int railwaycarriageSmallSpaciousness = _railwaycarriageSmall.NumberSeats;
+        int railwayCarriageSpaciousness = _railwayCarriage.NumberSeats;
+        int railwayCarriageSmallSpaciousness = _railwayCarriageSmall.NumberSeats;
 
         while (numberSeats > 0)
         {
-            if (numberSeats > railwaycarriageSpaciousness)
+            if (numberSeats > railwayCarriageSpaciousness)
             {
-                numberSeats -= railwaycarriageSpaciousness;
-                _train.Add(new Railwaycarriage());
-                RailwaycarriageCount++;
+                numberSeats -= railwayCarriageSpaciousness;
+                _train.Add(new RailwayCarriage());
+                RailwayCarriageCount++;
             }
             else
             {
-                if (numberSeats > railwaycarriageSmallSpaciousness)
+                if (numberSeats > railwayCarriageSmallSpaciousness)
                 {
-                    numberSeats -= railwaycarriageSpaciousness;
-                    _train.Add(new Railwaycarriage());
-                    RailwaycarriageCount++;
+                    numberSeats -= railwayCarriageSpaciousness;
+                    _train.Add(new RailwayCarriage());
+                    RailwayCarriageCount++;
                 }
                 else
                 {
-                    numberSeats -= railwaycarriageSmallSpaciousness;
-                    _train.Add(new RailwaycarriageSmall());
-                    RailwaycarriageSmallCount++;
+                    numberSeats -= railwayCarriageSmallSpaciousness;
+                    _train.Add(new RailwayCarriageSmall());
+                    RailwayCarriageSmallCount++;
                 }
             }
         }
@@ -248,7 +248,7 @@ class Train
         return _train.Count > 0;
     }
 
-    public void ResetTrain()
+    public void Reset()
     {
         _train.Clear();
         IsDeparted = false;
@@ -270,19 +270,19 @@ class Train
     }
 }
 
-class Railwaycarriage
+class RailwayCarriage
 {
     public int NumberSeats { get; protected set; }
 
-    public Railwaycarriage()
+    public RailwayCarriage()
     {
         NumberSeats = 80;
     }
 }
 
-class RailwaycarriageSmall : Railwaycarriage
+class RailwayCarriageSmall : RailwayCarriage
 {
-    public RailwaycarriageSmall()
+    public RailwayCarriageSmall()
     {
         NumberSeats = 50;
     }
