@@ -5,115 +5,110 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        User user = new User();
+        Dispatcher dispatcher = new Dispatcher();
 
-        user.Work();
+        dispatcher.Work();
     }
 }
 
-class User
+class Dispatcher
 {
+    private List<Train> _sentTrains = new List<Train>();
+    private Train _railwayCarriages = new Train();
     private List<City> _direction = new List<City>();
-    private Passengers _passengers = new Passengers();
-    private Train _train = new Train();
-    private RailwayCarriage _railwayCarriage = new RailwayCarriage();
-    private RailwayCarriageSmall _railwayCarriageSmall = new RailwayCarriageSmall();
+    private CashRegister _cashRegister = new CashRegister();
     private int _ticketCount = 0;
-
-    private void ShowTable()
-    {
-        bool isAsseble = _train.IsAssemble();
-        bool isDirection = IsDirection();
-        bool isDeparted = _train.IsDeparted;
-        int railwayCarriageCount = _train.RailwayCarriageCount;
-        int railwayCarriageSpaciousness = _railwayCarriage.NumberSeats;
-        int railwayCarriageSmallCount = _train.RailwayCarriageSmallCount;
-        int railwayCarriageSmallSpaciousness = _railwayCarriageSmall.NumberSeats;
-        Console.Clear();
-        Console.Write("Направление: ");
-
-        if (isDirection == true)
-        {
-            ShowDirection();
-        }
-        else
-        {
-            Console.Write("Здесь должно быть направление");
-        }
-
-        Console.Write("\nКоличество купленых билетов: " + _ticketCount);
-        Console.Write("\nФормирование поезда: ");
-
-        if (isAsseble == true)
-        {
-            Console.Write("Поезд сформирован и он имеет ");
-            ShowRailwayCarriage(railwayCarriageCount, railwayCarriageSpaciousness);
-            ShowRailwayCarriage(railwayCarriageSmallCount, railwayCarriageSmallSpaciousness);
-        }
-        else
-        {
-            Console.Write("Поезд не сформирован");
-        }
-
-        Console.Write("\nСостояние поезда: ");
-
-        if (isDeparted == true)
-        {
-            Console.Write("Поезд отправлен");
-        }
-        else
-        {
-            Console.Write("Поезд ждет сигнала для отправки");
-        }
-    }
 
     public void Work()
     {
-        const string Direction = "Direction";
-        const string TicketsSell = "Sell";
-        const string Form = "Form";
-        const string Depart = "Depart";
-        const string Exit = "Exit";
-        const string NewDirection = "New";
+        const string CommandStart = "start";
+        const string CommandExit = "exit";
         bool isExit = false;
 
         while (isExit == false)
         {
             ShowTable();
-
-            Console.SetCursorPosition(15, 15);
-            Console.WriteLine("\nЗадать направление: " + Direction + "\nПродать билеты: " + TicketsSell +
-                "\nСформировать поезд: " + Form + "\nОтправить поезд: " + Depart + "\nЗадать новое направление: " +
-                NewDirection + "\nВыйти из программы: " + Exit);
+            Console.SetCursorPosition(0, 15);
+            Console.WriteLine("Для создания плана поезда введите: " + CommandStart + "\nДля завершения работы введите: " + CommandExit);
             string userChoice = Console.ReadLine();
 
             switch (userChoice)
             {
-                case Direction:
-                    SetDirection();
+                case CommandStart:
+                    MakePlan();
                     break;
 
-                case TicketsSell:
-                    SellTickets();
-                    break;
-
-                case Form:
-                    FormTrain();
-                    break;
-
-                case Depart:
-                    _train.Depart();
-                    break;
-
-                case NewDirection:
-                    ResetDirection();
-                    break;
-
-                case Exit:
+                case CommandExit:
                     isExit = true;
                     break;
             }
         }
+    }
+
+    private void MakePlan()
+    {
+        const string CommandNo = "N";
+        bool checkDirection = false;
+        bool checkComposition = false;
+
+        ShowTable();
+
+        while (checkDirection == false)
+        {
+            SetDirection();
+            Console.WriteLine("Вы указали верное направление? Если да, нажмите enter, если нет введите: " + CommandNo);
+            string userChoice = Console.ReadLine();
+
+            switch (userChoice)
+            {
+                case CommandNo:
+                    _direction.Clear();
+                    break;
+
+                default:
+                    checkDirection = true;
+                    break;
+            }
+        }
+
+        ShowTable();
+        Console.WriteLine("Чтобы пустить в продажу билеты, нажмите enter");
+        Console.ReadKey();
+
+        SellTickets();
+
+        ShowTable();
+
+        Console.WriteLine("билеты проданы, осталось сформировать поезд.");
+
+        while (checkComposition == false)
+        {
+            _railwayCarriages.Assemble(_ticketCount);
+            Console.WriteLine("Если поезд сформирован верно и готов к отправке, нажмите Enter, если нет - введите: " + CommandNo);
+            string userChoice = Console.ReadLine();
+
+            switch (userChoice)
+            {
+                case CommandNo:
+                    _railwayCarriages.Reset();
+                    break;
+
+                default:
+                    checkComposition = true;
+                    break;
+            }
+        }
+
+        ShowTable();
+        Console.WriteLine("Поезд сформирован, отправляем");
+
+        _railwayCarriages.Depart();
+        _sentTrains.Add(_railwayCarriages);
+
+        ShowTable();
+        Console.ReadKey();
+
+        ResetPlan();
     }
 
     private void SetDirection()
@@ -131,6 +126,69 @@ class User
         return new City(city);
     }
 
+    private void SellTickets()
+    {
+        _ticketCount = _cashRegister.SellTickets();
+    }
+
+    private void ResetPlan()
+    {
+        _direction.Clear();
+        _railwayCarriages.Reset();
+        _ticketCount = 0;
+    }
+
+    private void ShowTable()
+    {
+        bool isAsseble = _railwayCarriages.IsAssemble();
+        bool checkDirection = CheckDirection();
+        bool isDeparted = _railwayCarriages.IsDeparted;
+
+        Console.Clear();
+        Console.Write("Направление: ");
+
+        if (checkDirection == true)
+        {
+            ShowDirection();
+        }
+        else
+        {
+            Console.Write("Здесь должно быть направление");
+        }
+
+
+        Console.Write("\nКоличество купленых билетов: " + _ticketCount);
+        Console.Write("\nФормирование поезда: ");
+
+        if (isAsseble == true)
+        {
+            Console.Write("Поезд сформирован и он имеет ");
+            _railwayCarriages.ShowCompositionInformation();
+        }
+        else
+        {
+            Console.Write("Поезд не сформирован");
+        }
+
+        Console.Write("\nСостояние поезда: ");
+
+        if (isDeparted == true)
+        {
+            Console.Write("Поезд отправлен");
+        }
+        else
+        {
+            Console.Write("Поезд ждет сигнала для отправки");
+        }
+
+        Console.SetCursorPosition(0, 15);
+    }
+
+    private bool CheckDirection()
+    {
+        return _direction.Count > 0;
+    }
+
     private void ShowDirection()
     {
         foreach (City city in _direction)
@@ -138,120 +196,94 @@ class User
             Console.Write(city.Name + " ");
         }
     }
-
-    private bool IsDirection()
-    {
-        return _direction.Count > 0;
-    }
-
-    private void SellTickets()
-    {
-        bool isDirection = IsDirection();
-
-        if (isDirection == false)
-        {
-            Console.WriteLine("Прежде чем продавать билеты, нужно указать направление");
-            Console.ReadKey();
-        }
-        else
-        {
-            _ticketCount = _passengers.Amount;
-        }
-    }
-
-    private void FormTrain()
-    {
-        if (_ticketCount == 0)
-        {
-            Console.WriteLine("Сперва продайте билеты, чтобы знать кол-во нужных мест");
-            Console.ReadKey();
-        }
-        else
-        {
-            _train.Assemble(_ticketCount);
-        }
-    }
-
-    private void ShowRailwayCarriage(int railwayCarriageCount, int railwayCarriageSpaciousness)
-    {
-        Console.Write("\n" + railwayCarriageCount + " вагонов, вместительностью " + railwayCarriageSpaciousness + " человек");
-    }
-
-    private void ResetDirection()
-    {
-        bool isDeparted = _train.IsDeparted;
-
-        if (isDeparted == true)
-        {
-            _direction.Clear();
-            _train.Reset();
-            _ticketCount = 0;
-        }
-        else
-        {
-            Console.WriteLine("Вы не отправили предыдущий поезд");
-            Console.ReadKey();
-        }
-    }
 }
 
 class Train
 {
-    private List<RailwayCarriage> _train = new List<RailwayCarriage>();
-    private RailwayCarriage _railwayCarriage = new RailwayCarriage();
-    private RailwayCarriageSmall _railwayCarriageSmall = new RailwayCarriageSmall();
+    private List<RailwayCarriage> _railwayCarriages = new List<RailwayCarriage>();
     public bool IsDeparted { get; private set; }
-    public int RailwayCarriageCount { get; private set; }
+    public int TicketCount { get; private set; }
     public int RailwayCarriageSmallCount { get; private set; }
+    public int RailwayCarriageMediumCount { get; private set; }
+    public int RailwayCarriageLargeCount { get; private set; }
 
     public Train()
     {
-        _train = new List<RailwayCarriage>();
+        List<City> Direction = new List<City>();/*direction;*/
+        TicketCount = 0;
+        _railwayCarriages = new List<RailwayCarriage>();
         IsDeparted = false;
-        RailwayCarriageCount = 0;
         RailwayCarriageSmallCount = 0;
+        RailwayCarriageMediumCount = 0;
+        RailwayCarriageLargeCount = 0;
     }
 
     public void Assemble(int numberSeats)
     {
-        int railwayCarriageSpaciousness = _railwayCarriage.NumberSeats;
-        int railwayCarriageSmallSpaciousness = _railwayCarriageSmall.NumberSeats;
-
         while (numberSeats > 0)
         {
-            if (numberSeats > railwayCarriageSpaciousness)
+            const string ChoiceSmall = "S";
+            const string ChoiceMedium = "M";
+            const string ChoiceLarge = "L";
+            const string TitleSmall = "small";
+            const string TitleMedium = "medium";
+            const string TitleLarge = "large";
+            const int SmallCapacity = 50;
+            const int MediumCapacity = 100;
+            const int LargeCapacity = 150;
+            Console.Clear();
+            Console.WriteLine(numberSeats + " осталось купленых билетов, для добавление вагона введите соответствующий символ");
+            Console.WriteLine(TitleSmall + ": " + ChoiceSmall + " вместимость: " + SmallCapacity);
+            Console.WriteLine(TitleMedium + ": " + ChoiceMedium + " вместимость: " + MediumCapacity);
+            Console.WriteLine(TitleLarge + ": " + ChoiceLarge + " вместимость: " + LargeCapacity);
+            string dispatcherChoice = Console.ReadLine();
+
+            if (dispatcherChoice == ChoiceSmall)
             {
-                numberSeats -= railwayCarriageSpaciousness;
-                _train.Add(new RailwayCarriage());
-                RailwayCarriageCount++;
+                _railwayCarriages.Add(new RailwayCarriage(TitleSmall, SmallCapacity));
+                numberSeats -= SmallCapacity;
+                RailwayCarriageSmallCount++;
             }
-            else
+            else if (dispatcherChoice == ChoiceMedium)
             {
-                if (numberSeats > railwayCarriageSmallSpaciousness)
-                {
-                    numberSeats -= railwayCarriageSpaciousness;
-                    _train.Add(new RailwayCarriage());
-                    RailwayCarriageCount++;
-                }
-                else
-                {
-                    numberSeats -= railwayCarriageSmallSpaciousness;
-                    _train.Add(new RailwayCarriageSmall());
-                    RailwayCarriageSmallCount++;
-                }
+                _railwayCarriages.Add(new RailwayCarriage(TitleMedium, MediumCapacity));
+                numberSeats -= MediumCapacity;
+                RailwayCarriageMediumCount++;
+            }
+            else if (dispatcherChoice == ChoiceLarge)
+            {
+                _railwayCarriages.Add(new RailwayCarriage(TitleLarge, LargeCapacity));
+                numberSeats -= LargeCapacity;
+                RailwayCarriageLargeCount++;
             }
         }
     }
 
+    public void ShowCompositionInformation()
+    {
+        const string TitleSmall = "small";
+        const string TitleMedium = "medium";
+        const string TitleLarge = "large";
+        const int SmallCapacity = 50;
+        const int MediumCapacity = 100;
+        const int LargeCapacity = 150;
+        Console.Write("\n" + RailwayCarriageSmallCount + " " + TitleSmall + " вагонов, вместительностью: " + SmallCapacity + " человек");
+        Console.Write("\n" + RailwayCarriageMediumCount + " " + TitleMedium + " вагонов, вместительностью: " + MediumCapacity + " человек");
+        Console.Write("\n" + RailwayCarriageLargeCount + " " + TitleLarge + " вагонов, вместительностью: " + LargeCapacity + " человек");
+    }
+
     public bool IsAssemble()
     {
-        return _train.Count > 0;
+        return _railwayCarriages.Count > 0;
     }
 
     public void Reset()
     {
-        _train.Clear();
+        _railwayCarriages.Clear();
         IsDeparted = false;
+        RailwayCarriageSmallCount = 0;
+        RailwayCarriageMediumCount = 0;
+        RailwayCarriageLargeCount = 0;
     }
 
     public void Depart()
@@ -272,19 +304,13 @@ class Train
 
 class RailwayCarriage
 {
-    public int NumberSeats { get; protected set; }
+    public string Name { get; private set; }
+    public int NumberSeats { get; private set; }
 
-    public RailwayCarriage()
+    public RailwayCarriage(string name, int numberSeats)
     {
-        NumberSeats = 80;
-    }
-}
-
-class RailwayCarriageSmall : RailwayCarriage
-{
-    public RailwayCarriageSmall()
-    {
-        NumberSeats = 50;
+        Name = name;
+        NumberSeats = numberSeats;
     }
 }
 
@@ -298,15 +324,14 @@ class City
     }
 }
 
-class Passengers
+class CashRegister
 {
     private Random _random = new Random();
-    public int Amount { get; private set; }
 
-    public Passengers()
+    public int SellTickets()
     {
         int minPassengers = 570;
         int maxPassengers = 1500;
-        Amount = _random.Next(minPassengers, maxPassengers);
+        return _random.Next(minPassengers, maxPassengers);
     }
 }
