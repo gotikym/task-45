@@ -14,6 +14,7 @@ internal class Program
 class Dispatcher
 {
     private List<Train> _sentTrains = new List<Train>();
+    CashRegister cashRegister = new CashRegister();
 
     public void Work()
     {
@@ -40,34 +41,39 @@ class Dispatcher
         }
     }
 
+    public int SellTickets()
+    {
+        int ticketsSold = cashRegister.SellTickets();
+        return ticketsSold;
+    }
+
     private void MakePlan()
     {
-        Train _railwayCarriages = new Train();
+        Train train = new Train();
 
-        _railwayCarriages.ShowTable();
-        _railwayCarriages.SetDirection();
+        train.ShowTable();
+        train.SetDirection();
 
-        _railwayCarriages.ShowTable();
+        train.ShowTable();
 
         Console.WriteLine("Чтобы пустить в продажу билеты, нажмите enter");
         Console.ReadKey();
 
-        _railwayCarriages.GetPassengers();
-        _railwayCarriages.ShowTable();
+        train.SetPassengers(SellTickets());
+        train.ShowTable();
 
         Console.WriteLine("билеты проданы, осталось сформировать поезд.");
 
-        _railwayCarriages.ShowTable();
-        _railwayCarriages.CreateWagons();
+        train.ShowTable();
+        train.CreateWagons();
 
         Console.WriteLine("Поезд сформирован, отправляем");
         Console.ReadKey();
 
-        _railwayCarriages.Depart();
-        _sentTrains.Add(_railwayCarriages);
+        train.Depart();
+        _sentTrains.Add(train);
 
-        _railwayCarriages.ShowTable();
-        _railwayCarriages.Reset();
+        train.ShowTable();
     }
 }
 
@@ -75,6 +81,7 @@ class Train
 {
     private List<RailwayCarriage> _railwayCarriages = new List<RailwayCarriage>();
     private List<string> _direction = new List<string>();
+    private Dictionary<string, int> _types = new Dictionary<string, int>();
     public bool IsDeparted { get; private set; }
     public int Passengers { get; private set; }
 
@@ -84,40 +91,12 @@ class Train
         _direction = new List<string>();
         Passengers = 0;
         IsDeparted = false;
+        AddType();
     }
 
-    public void Assemble(int numberSeats)
+    public void SetPassengers(int ticketsSold)
     {
-        while (numberSeats > 0)
-        {
-            const string TitleSmall = "S";
-            const string TitleMedium = "M";
-            const string TitleLarge = "L";
-            int smallCapacity = 50;
-            int mediumCapacity = 100;
-            int largeCapacity = 150;
-            Console.Clear();
-            Console.WriteLine(numberSeats + " осталось купленых билетов, для добавление вагона введите соответствующий символ");
-            Console.WriteLine(TitleSmall + ": вместимость " + smallCapacity + " человек");
-            Console.WriteLine(TitleMedium + ": вместимость " + mediumCapacity + " человек");
-            Console.WriteLine(TitleLarge + ": вместимость " + largeCapacity + " человек");
-            string dispatcherChoice = Console.ReadLine();
-
-            switch (dispatcherChoice)
-            {
-                case TitleSmall:
-                    numberSeats -= AddRailwatCarriage(TitleSmall, smallCapacity);
-                    break;
-
-                case TitleMedium:
-                    numberSeats -= AddRailwatCarriage(TitleMedium, mediumCapacity);
-                    break;
-
-                case TitleLarge:
-                    numberSeats -= AddRailwatCarriage(TitleLarge, largeCapacity);
-                    break;
-            }
-        }
+        Passengers = ticketsSold;
     }
 
     public void CreateWagons()
@@ -172,20 +151,6 @@ class Train
         }
     }
 
-    public void GetPassengers()
-    {
-        CashRegister cashRegister = new CashRegister();
-        Passengers = cashRegister.SellTickets();
-    }
-
-    public void Reset()
-    {
-        _railwayCarriages.Clear();
-        _direction.Clear();
-        IsDeparted = false;
-        Passengers = 0;
-    }
-
     public void Depart()
     {
         IsDeparted = true;
@@ -236,16 +201,54 @@ class Train
         Console.SetCursorPosition(0, 15);
     }
 
-    private int AddRailwatCarriage(string title, int capacity)
-    {
-        _railwayCarriages.Add(new RailwayCarriage(title, capacity));
-        return capacity;
-    }
-
     private string ChooseCity()
     {
         string city = Console.ReadLine();
         return city;
+    }
+
+    private void Assemble(int numberSeats)
+    {
+        while (numberSeats > 0)
+        {
+            bool isFound = false;
+            Console.Clear();
+            Console.WriteLine(numberSeats + " осталось купленых билетов, для добавление вагона введите его название");
+
+            while (isFound == false)
+            {
+                ShowType();
+                string title = Console.ReadLine();
+                foreach (var wagon in _types)
+                {
+                    if (wagon.Key == title)
+                    {
+                        _railwayCarriages.Add(new RailwayCarriage(wagon.Key, wagon.Value));
+                        numberSeats -= wagon.Value;
+                        isFound = true;
+                    }
+                }
+            }
+        }
+    }
+
+    private void ShowType()
+    {
+        foreach (var wagon in _types)
+        {
+            Console.WriteLine("Вагон " + wagon.Key + " вместимостью " + wagon.Value);
+        }
+    }
+
+    private void AddType()
+    {
+        string[] title = { "small", "medium", "large" };
+        int[] capacity = { 50, 100, 150 };
+
+        for (int i = 0; i < title.Length; i++)
+        {
+            _types.Add(title[i], capacity[i]);
+        }
     }
 
     private void ShowDirection()
@@ -258,32 +261,22 @@ class Train
 
     private void ShowCompositionInformation()
     {
-        string titleSmall = "S";
-        string titleMedium = "M";
-        string titleLarge = "L";
-        int numberSmallRailwayCarriage = 0;
-        int numberMediumRailwayCarriage = 0;
-        int numberLargeRailwayCarriage = 0;
+        string title = "";
+        int numberRailwayCarriage = 0;
 
-        foreach (RailwayCarriage railwayCarriage in _railwayCarriages)
+        foreach (var type in _types)
         {
-            if (railwayCarriage.Name == titleSmall)
+            foreach (RailwayCarriage railwayCarriage in _railwayCarriages)
             {
-                numberSmallRailwayCarriage++;
+                if (railwayCarriage.Name == type.Key)
+                {
+                    title = type.Key;
+                    numberRailwayCarriage++;
+                }
             }
-            else if (railwayCarriage.Name == titleMedium)
-            {
-                numberMediumRailwayCarriage++;
-            }
-            else if (railwayCarriage.Name == titleLarge)
-            {
-                numberLargeRailwayCarriage++;
-            }
-        }
 
-        Console.Write("\n" + numberSmallRailwayCarriage + " " + titleSmall + " вагонов");
-        Console.Write("\n" + numberMediumRailwayCarriage + " " + titleMedium + " вагонов");
-        Console.Write("\n" + numberLargeRailwayCarriage + " " + titleLarge + " вагонов");
+            Console.Write("\n" + numberRailwayCarriage + " " + title + " вагонов");
+        }
     }
 
     private bool IsAssemble()
