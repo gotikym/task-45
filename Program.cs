@@ -14,7 +14,7 @@ internal class Program
 class Dispatcher
 {
     private List<Train> _sentTrains = new List<Train>();
-    CashRegister cashRegister = new CashRegister();
+    private CashRegister _cashRegister = new CashRegister();
 
     public void Work()
     {
@@ -41,12 +41,6 @@ class Dispatcher
         }
     }
 
-    public int SellTickets()
-    {
-        int ticketsSold = cashRegister.SellTickets();
-        return ticketsSold;
-    }
-
     private void MakePlan()
     {
         Train train = new Train();
@@ -59,7 +53,7 @@ class Dispatcher
         Console.WriteLine("Чтобы пустить в продажу билеты, нажмите enter");
         Console.ReadKey();
 
-        train.SetPassengers(SellTickets());
+        train.SetPassengers(_cashRegister.SellTickets());
         train.ShowTable();
 
         Console.WriteLine("билеты проданы, осталось сформировать поезд.");
@@ -126,9 +120,9 @@ class Train
     public void SetDirection()
     {
         const string CommandNo = "N";
-        bool checkDirection = false;
+        bool isSetDirection = false;
 
-        while (checkDirection == false)
+        while (isSetDirection == false)
         {
             Console.WriteLine("Задайте направление поезда");
             Console.WriteLine("Откуда: ");
@@ -145,7 +139,7 @@ class Train
                     break;
 
                 default:
-                    checkDirection = true;
+                    isSetDirection = true;
                     break;
             }
         }
@@ -242,13 +236,9 @@ class Train
 
     private void AddType()
     {
-        string[] title = { "small", "medium", "large" };
-        int[] capacity = { 50, 100, 150 };
-
-        for (int i = 0; i < title.Length; i++)
-        {
-            _types.Add(title[i], capacity[i]);
-        }
+        _types.Add("small", 50);
+        _types.Add("medium", 100);
+        _types.Add("large", 150);
     }
 
     private void ShowDirection()
