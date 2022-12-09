@@ -126,9 +126,9 @@ class Train
         {
             Console.WriteLine("Задайте направление поезда");
             Console.WriteLine("Откуда: ");
-            _direction.Add(ChooseCity());
+            ChooseCity();
             Console.WriteLine("Куда: ");
-            _direction.Add(ChooseCity());
+            ChooseCity();
             Console.WriteLine("Вы указали верное направление? Если да, нажмите enter, если нет введите: " + CommandNo);
             string userChoice = Console.ReadLine();
 
@@ -195,10 +195,9 @@ class Train
         Console.SetCursorPosition(0, 15);
     }
 
-    private string ChooseCity()
+    private void ChooseCity()
     {
-        string city = Console.ReadLine();
-        return city;
+        _direction.Add(Console.ReadLine());
     }
 
     private void Assemble(int numberSeats)
